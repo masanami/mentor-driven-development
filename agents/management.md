@@ -169,50 +169,8 @@ Mng_AGT: 現在の進捗を確認しましょう。
 
 ## フェーズ遷移管理
 
-### 遷移判断基準
+**詳細なフェーズ遷移フローと進捗管理については、[フェーズ遷移ワークフロー](../workflows/phase-transition.md)を参照してください。**
 
-```yaml
-phase_transition:
-  to_requirements:
-    conditions:
-      - project_goals_unclear
-      - scope_undefined
-      - stakeholder_alignment_needed
-
-  to_design:
-    conditions:
-      - requirements_documented
-      - acceptance_criteria_defined
-      - technical_approach_needed
-
-  to_implementation:
-    conditions:
-      - design_approved
-      - tasks_defined
-      - priorities_set
-```
-
-### 引き継ぎ情報
-
-```yaml
-handoff_template:
-  metadata:
-    project_id: string
-    current_phase: string
-    next_phase: string
-    timestamp: datetime
-
-  context:
-    objectives: list
-    constraints: list
-    completed_work: list
-    pending_items: list
-
-  recommendations:
-    focus_areas: list
-    risks: list
-    suggested_approach: string
-```
 
 ## メンタリング戦略
 
@@ -301,36 +259,101 @@ metrics:
 
 ## 他エージェントとの連携
 
-### Req_AGTへの引き継ぎ
+### 実際の連携パターン
+
+**プロジェクト開始時（Req_AGTへの依頼）**
 
 ```
 Mng_AGT → Req_AGT
 
-"要件が不明確な部分があります。
-Req_AGTに詳細な要件定義を依頼します。
+"プロジェクトを開始します。要件定義フェーズを担当してください。
 
-【確認が必要な項目】
-- 機能要件の詳細
-- 非機能要件（性能、セキュリティ等）
-- 制約事項
+【プロジェクト情報】
+- プロジェクト名: [名前]
+- 目的: [目的]
+- 制約: [制約事項]
 
-要件定義のプロセスも学習機会として活用してください。"
+【作業指示】
+- 機能要件の詳細化
+- 非機能要件の定義
+- 受入基準の作成
+- 優先順位の決定
+
+【完了条件】
+- requirements.md作成
+- user-stories.md作成
+- 品質ゲート通過
+
+完了時は私に報告してください。要件定義のプロセスも学習機会として活用してください。"
 ```
 
-### Des_AGTへの引き継ぎ
+**要件定義完了時（Des_AGTへの依頼）**
 
 ```
 Mng_AGT → Des_AGT
 
-"要件が明確になりました。
-設計フェーズに移行します。
+"要件定義が完了しました。設計フェーズに移行します。
 
-【設計時の考慮事項】
-- スケーラビリティ
-- 保守性
-- 既存システムとの統合
+【引き継ぎ成果物】
+- requirements.md
+- user-stories.md
+- 制約条件一覧
 
-設計の意図を理解することが重要です。"
+【設計時の重点ポイント】
+- 要件[X]の非機能要件への対応
+- 既存システムとの統合考慮
+- 将来拡張性の確保
+
+【完了条件】
+- アーキテクチャ設計完了
+- 詳細設計完了
+- タスク分割（WBS）作成
+
+設計の意図を理解し、実装可能な形に落とし込んでください。"
+```
+
+**設計完了時（Imp_AGTへの依頼）**
+
+```
+Mng_AGT → Imp_AGT
+
+"設計が完了しました。実装フェーズを開始してください。
+
+【引き継ぎ成果物】
+- architecture.md
+- api-spec.md
+- task-breakdown.md
+
+【実装優先順位】
+1. 基盤機能（認証・DB接続）
+2. コア機能（CRUD操作）
+3. 周辺機能（通知・レポート）
+
+【完了条件】
+- 全機能実装完了
+- ユニットテスト通過
+- コード品質基準クリア
+
+TDD（テスト駆動開発）を実践し、品質の高いコードを作成してください。"
+```
+
+**後退時の指示例**
+
+```
+Mng_AGT → Req_AGT
+
+"実装中に要件の曖昧さが発見されました。
+要件の追加明確化をお願いします。
+
+【発見された問題】
+- ユーザー削除時の関連データ処理が未定義
+- 権限設定の詳細仕様が不明確
+
+【追加作業】
+- データ削除ポリシーの策定
+- 権限管理の詳細仕様作成
+
+完了後、設計の見直しが必要かDes_AGTと協議します。"
 ```
 
 ## まとめ

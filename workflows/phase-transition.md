@@ -6,432 +6,299 @@
 
 ## フェーズ遷移マップ
 
-```mermaid
-graph TD
-    START([開始]) --> MGT{Mng_AGT}
-    MGT --> REQ[Req_AGT<br/>要件定義]
-    REQ --> DES[Des_AGT<br/>設計]
-    DES --> IMP[Imp_AGT<br/>実装]
-    IMP --> TEST[Test_AGT<br/>テスト]
-    TEST --> DEPLOY[Deploy_AGT<br/>デプロイ]
-
-    REQ -.->|要件変更| MGT
-    DES -.->|要件不明| REQ
-    IMP -.->|設計見直し| DES
-    TEST -.->|バグ修正| IMP
-    DEPLOY -.->|問題発生| TEST
-
-    DEPLOY --> END([完了])
-    END -.->|新機能| MGT
 ```
+開始 → 要件定義 → マネジメント → 設計 → マネジメント → 実装 → マネジメント → テスト → マネジメント → デプロイ → 完了
+            ↑            ↑            ↑            ↑            ↑
+          進捗確認      進捗確認      進捗確認      進捗確認      進捗確認
+```
+
+**基本原則：**
+
+- すべてのフェーズ遷移はマネジメントエージェントを経由
+- マネジメントエージェントが進捗管理と品質確認を実施
+- 各エージェントは直接的な引き継ぎは行わない
 
 ## フェーズ遷移の原則
 
 ### 1. 前進条件
 
-各フェーズから次のフェーズへ進むための明確な条件を定義します。
-
-```yaml
-transition_rules:
-  forward:
-    principle: "完了基準を満たした場合のみ前進"
-    verification: "チェックリストによる確認"
-    approval: "メンティーの承認必須"
-```
+- 完了基準を満たした場合のみ前進
+- チェックリストによる確認
+- メンティーの承認必須
 
 ### 2. 後退条件
 
-問題が発見された場合の適切な後退ルールを設定します。
+- ブロッカー発生時は適切なフェーズへ後退
+- 後退理由の記録
+- 後退も学習機会として活用
 
-```yaml
-transition_rules:
-  backward:
-    principle: "ブロッカー発生時は適切なフェーズへ後退"
-    documentation: "後退理由の記録"
-    learning: "後退も学習機会として活用"
+## マネジメントエージェントによる進捗管理
+
+### 進捗管理の方法
+
+**1. プロジェクト状況ファイル（project-status.md）**
+
+```markdown
+# プロジェクト進捗管理
+
+## 基本情報
+
+- プロジェクト名: [プロジェクト名]
+- 開始日: [日付]
+- 現在フェーズ: [フェーズ名]
+- 全体進捗: [完了したフェーズ] / [総フェーズ数]
+
+## 各フェーズの状況
+
+### 要件定義
+
+- 状態: [未開始/進行中/完了/保留]
+- 開始日: [日付]
+- 完了日: [日付]
+- 成果物:
+    - requirements.md ✓
+    - user-stories.md ✓
+- 課題: なし
+- 次回アクション: 設計フェーズへ移行
+
+### 設計
+
+- 状態: [未開始/進行中/完了/保留]
+- 開始日: [日付]
+- 完了日: [日付]
+- 成果物:
+    - architecture.md ○
+    - api-spec.md ○
+- 課題: なし
+- 次回アクション: 実装フェーズへ移行
+
+## 現在の課題
+
+- 課題1: 詳細と対策
+- 課題2: 詳細と対策
+
+## 次回の予定
+
+- 予定1: 詳細
+- 予定2: 詳細
 ```
+
+**2. 引き継ぎ事項管理**
+
+- 各フェーズの完了時に成果物リストを作成
+- 次フェーズに必要な情報を整理
+- 未解決課題の追跡
+
+**3. 品質チェックポイント**
+
+- 各フェーズの完了基準確認
+- 成果物の品質評価
+- 次フェーズ開始可否の判断
 
 ## 各フェーズの遷移詳細
 
-### 開始 → マネジメント (Mng_AGT)
+### 開始 → 要件定義 (Req_AGT)
 
-```yaml
-transition:
-  from: START
-  to: Mng_AGT
+**トリガー:**
 
-  trigger:
-    - new_project_request
-    - new_feature_request
-    - improvement_request
+- 新規プロジェクト要求
+- 新機能要求
+- 改善要求
 
-  actions:
-    - project_initialization
-    - context_gathering
-    - initial_assessment
+**開始時のマネジメント初期化:**
 
-  handoff_data:
-    - project_description
-    - constraints
-    - timeline
-```
+1. プロジェクト状況ファイル作成
+2. 初期評価とスコープ設定
+3. 要件定義フェーズの開始
+4. Req_AGTへの作業依頼
 
-**遷移時の対話例:**
+**進捗管理開始:**
 
-```
-User: 新しいWebアプリを作りたいです
+- project-status.md 作成
+- 全体計画の策定
+- マイルストーン設定
 
-Mng_AGT: プロジェクトを開始します。まず全体像を把握しましょう。
+### 要件定義完了 → マネジメント → 設計開始
 
-【初期評価】
-- プロジェクトタイプ: Webアプリケーション
-- 推定規模: 確認中
-- 優先事項: 確認中
+**Req_AGTからマネジメントへの報告:**
 
-いくつか確認させてください...
-[質問による情報収集]
+- 要件定義作業完了報告
+- 成果物の提出
+- 課題・リスクの報告
 
-評価完了。要件が不明確な部分があるため、
-Req_AGTに引き継ぎます。
-```
+**マネジメントの品質確認:**
 
-### マネジメント → 要件定義 (Req_AGT)
+- 機能要件文書化完了確認
+- 非機能要件定義完了確認
+- 受入基準確立確認
+- 優先順位決定確認
 
-```yaml
-transition:
-  from: Mng_AGT
-  to: Req_AGT
+**マネジメント作業:**
 
-  conditions:
-    - requirements_unclear: true
-    - scope_undefined: true
-    - stakeholder_alignment_needed: true
+1. 進捗管理ファイル更新（要件定義完了）
+2. 成果物の品質確認
+3. 次フェーズ開始可否判断
+4. Des_AGTへの作業指示書作成
 
-  handoff_package:
-    metadata:
-      transition_reason: "要件の明確化が必要"
-      priority_areas: ["機能要件", "非機能要件"]
+**Des_AGTへの引き継ぎ準備:**
 
-    context:
-      project_goals: string
-      constraints: list
-      initial_scope: string
+- 要件定義成果物の整理
+- 設計時の重点ポイント明示
+- 制約条件・優先順位の伝達
 
-    instructions:
-      focus_areas: list
-      questions_to_answer: list
-```
+### 設計完了 → マネジメント → 実装開始
 
-**遷移プロセス:**
+**Des_AGTからマネジメントへの報告:**
 
-```
-Mng_AGT: 要件定義フェーズに移行します。
+- 設計作業完了報告
+- 設計書・仕様書の提出
+- 実装時の注意事項報告
 
-【引き継ぎ情報】
-プロジェクト: タスク管理アプリ
-目的: チーム作業の効率化
-制約: 3ヶ月以内にMVPリリース
+**マネジメントの品質確認:**
 
-【Req_AGTへの指示】
-以下を明確化してください：
-1. ユーザーペルソナ
-2. 主要機能の詳細
-3. 非機能要件
+- アーキテクチャ定義完了確認
+- 詳細設計完了確認
+- タスク分割完了確認
+- 技術スタック決定確認
 
-Req_AGT: 引き継ぎを確認しました。
-要件定義を開始します。
-```
+**マネジメント作業:**
 
-### 要件定義 → 設計 (Des_AGT)
+1. 進捗管理ファイル更新（設計完了）
+2. 設計書の品質確認
+3. 実装計画の策定
+4. Imp_AGTへの作業指示書作成
 
-```yaml
-transition:
-  from: Req_AGT
-  to: Des_AGT
+**Imp_AGTへの引き継ぎ準備:**
 
-  conditions:
-    - functional_requirements: documented
-    - non_functional_requirements: defined
-    - acceptance_criteria: established
-    - priority: determined
+- 設計書の整理と説明
+- 実装優先順位の決定
+- 開発標準・ガイドラインの提供
 
-  quality_gates:
-    - requirements_review: passed
-    - completeness_check: passed
-    - feasibility_confirmed: true
+### 実装完了 → マネジメント → テスト開始
 
-  handoff_package:
-    requirements:
-      functional: list
-      non_functional: list
-      constraints: list
+**Imp_AGTからマネジメントへの報告:**
 
-    priorities:
-      must_have: list
-      should_have: list
-      could_have: list
+- 実装作業完了報告
+- ソースコード提出
+- テスト準備状況報告
 
-    recommendations:
-      architecture_hints: string
-      technology_suggestions: list
-```
+**マネジメントの品質確認:**
 
-**品質ゲート確認:**
+- 実装完了確認
+- ユニットテスト通過確認
+- コード品質確認
+- ドキュメント更新確認
 
-```
-Req_AGT: 要件定義が完了しました。品質確認を行います。
+**マネジメント作業:**
 
-【チェックリスト】
-✅ 機能要件: 15項目定義済み
-✅ 非機能要件: 8項目定義済み
-✅ 受入基準: 全項目に設定
-✅ 優先順位: MoSCoW分析完了
-✅ レビュー: メンティー承認済み
+1. 進捗管理ファイル更新（実装完了）
+2. 成果物の品質確認
+3. テスト計画の確認
+4. Test_AGTへの作業指示書作成
 
-Des_AGTへの引き継ぎ準備完了。
+**Test_AGTへの引き継ぎ準備:**
 
-User: 確認しました。設計に進めてください。
-
-Des_AGT: 要件を受領しました。設計フェーズを開始します。
-```
-
-### 設計 → 実装 (Imp_AGT)
-
-```yaml
-transition:
-  from: Des_AGT
-  to: Imp_AGT
-
-  conditions:
-    - architecture_defined: true
-    - detailed_design: completed
-    - task_breakdown: completed
-    - tech_stack: decided
-
-  quality_gates:
-    - design_review: passed
-    - feasibility_check: passed
-    - risk_assessment: completed
-
-  handoff_package:
-    design:
-      architecture_diagram: url
-      component_design: document
-      data_model: schema
-      api_specification: openapi
-
-    tasks:
-      breakdown: wbs
-      dependencies: graph
-      priorities: list
-      estimates: hours
-
-    guidelines:
-      coding_standards: document
-      testing_strategy: document
-```
-
-**タスク引き継ぎ例:**
-
-```
-Des_AGT: 設計完了。実装タスクを整理しました。
-
-【実装タスク概要】
-Phase 1 (基盤): 3タスク, 8時間
-Phase 2 (認証): 4タスク, 6時間
-Phase 3 (CRUD): 6タスク, 12時間
-
-【最初のタスク】
-T1.1: プロジェクト初期設定
-- 見積: 2時間
-- 依存: なし
-- 優先度: Critical
-
-Imp_AGT: タスクを受領しました。
-T1.1から実装を開始します。
-```
-
-### 実装 → テスト
-
-```yaml
-transition:
-  from: Imp_AGT
-  to: Test_AGT
-
-  conditions:
-    - implementation: completed
-    - unit_tests: passed
-    - integration_ready: true
-
-  handoff_package:
-    implementation:
-      source_code: repository
-      test_coverage: percentage
-      documentation: updated
-
-    test_requirements:
-      test_cases: list
-      test_data: prepared
-      environments: configured
-```
+- テスト対象の整理
+- テスト環境の準備確認
+- テスト計画書の提供
 
 ## エラー時の遷移
 
 ### 要件不明による後退
 
-```
-Imp_AGT: 実装中に要件の曖昧さを発見しました。
+**発生時の流れ:**
 
-【問題】
-ユーザー削除時の関連データ処理が未定義
-
-【推奨アクション】
-Req_AGTに戻って明確化
-
-Mng_AGT: 状況を確認しました。
-一時的にReq_AGTに戻ります。
-
-Req_AGT: 要件の追加確認を行います。
-[要件の明確化]
-
-完了後、Des_AGTで設計を更新し、
-Imp_AGTに再引き継ぎします。
-```
+1. Imp_AGTが要件の曖昧さをマネジメントに報告
+2. マネジメントが状況を評価し、後退を決定
+3. 進捗管理ファイルに後退理由を記録
+4. Req_AGTに要件明確化を指示
+5. 完了後、必要に応じてDes_AGTで設計更新
+6. 更新完了後、Imp_AGTに作業再開指示
 
 ### 設計問題による後退
 
-```
-Imp_AGT: パフォーマンス問題を検出しました。
+**発生時の流れ:**
 
-【問題】
-現在の設計では要求性能を満たせません。
-- 現状: 応答時間 500ms
-- 要求: 200ms以下
-
-Des_AGT: 設計の見直しを行います。
-[設計の最適化]
-
-最適化完了。更新された設計で実装を再開してください。
-```
+1. 実装・テスト中に設計問題をマネジメントに報告
+2. マネジメントが問題の影響範囲を評価
+3. 進捗管理ファイルに問題と対策を記録
+4. Des_AGTに設計見直しを指示
+5. 設計更新完了後、影響範囲の実装を再開
 
 ## 並行フェーズの管理
 
 ### フロントエンド/バックエンド並行開発
 
-```yaml
-parallel_execution:
-  split_point: Des_AGT
-
-  branches:
-    - name: frontend
-      agent: Imp_AGT_Frontend
-      tasks: [UI実装, 状態管理, API統合]
-
-    - name: backend
-      agent: Imp_AGT_Backend
-      tasks: [API実装, DB実装, 認証]
-
-  synchronization:
-    checkpoints: [API仕様確定, 統合テスト]
-    communication: 共有ドキュメント
-```
+- 分岐点: 設計フェーズ完了後
+- フロントエンド: UI実装、状態管理、API統合
+- バックエンド: API実装、DB実装、認証
+- 同期ポイント: API仕様確定、統合テスト
 
 ## フェーズ遷移の記録
 
 ### 遷移ログフォーマット
 
-```json
-{
-  "timestamp": "2024-01-20T10:30:00Z",
-  "transition": {
-    "from": "Req_AGT",
-    "to": "Des_AGT",
-    "type": "forward"
-  },
-  "reason": "要件定義完了",
-  "quality_gates": {
-    "requirements_review": "passed",
-    "completeness_check": "passed"
-  },
-  "handoff_data": {
-    "documents": ["requirements.md", "user-stories.md"],
-    "issues": [],
-    "notes": "MVPスコープ確定"
-  },
-  "approver": "user@example.com"
-}
-```
+- タイムスタンプ
+- 遷移元・遷移先
+- 遷移種別（前進/後退）
+- 遷移理由
+- 品質ゲート通過状況
+- 引き継ぎドキュメント
+- 承認者
 
 ## 学習ポイントの活用
 
-### フェーズ遷移時の振り返り
+### マネジメントによる振り返り管理
 
-```
-Mng_AGT: 要件定義フェーズが完了しました。
-振り返りを行いましょう。
+**各フェーズ完了時:**
 
-【学習ポイント】
-1. 良かった点
-   - ユーザーストーリーが明確
-   - 非機能要件も網羅
+1. 該当エージェントから振り返り情報を収集
+2. 進捗管理ファイルに学習事項を記録
+3. 次フェーズへの改善点を反映
+4. プロジェクト全体の知見として蓄積
 
-2. 改善点
-   - 初期段階で優先順位を決めるべきだった
-   - ステークホルダーの確認が遅れた
+**振り返り記録フォーマット:**
 
-3. 次回への適用
-   - 要件定義開始時にMoSCoW分析を実施
-   - ステークホルダーマップを最初に作成
+```markdown
+## フェーズ振り返り: [フェーズ名]
 
-この経験を次のプロジェクトに活かしましょう。
+### 良かった点
+
+- [具体的な成功要因]
+
+### 改善点
+
+- [問題点と原因]
+- [次回への対策]
+
+### 学習事項
+
+- [得られた知見]
+- [他プロジェクトへの適用可能性]
 ```
 
 ## ベストプラクティス
 
 ### 1. 明確な完了基準
 
-```yaml
-completion_criteria:
-  definition:
-    - specific: 具体的で測定可能
-    - agreed: 関係者間で合意
-    - documented: 文書化されている
-
-  verification:
-    - checklist: 必須項目の確認
-    - review: ピアレビュー実施
-    - approval: 承認プロセス
-```
+- 具体的で測定可能な基準
+- 関係者間での合意
+- 文書化とチェックリスト
+- レビューと承認プロセス
 
 ### 2. 効果的な引き継ぎ
 
-```yaml
-handoff_best_practices:
-  documentation:
-    - complete: 必要な情報がすべて含まれる
-    - structured: 構造化されている
-    - accessible: アクセス可能な場所に保存
-
-  communication:
-    - synchronous: 必要に応じて同期的な引き継ぎ
-    - questions: 質問の機会を設ける
-    - confirmation: 受領確認を得る
-```
+- 必要な情報の完全性
+- 構造化されたドキュメント
+- アクセス可能な保存場所
+- 質問機会の確保と受領確認
 
 ### 3. 継続的改善
 
-```yaml
-continuous_improvement:
-  metrics:
-    - transition_time: 遷移にかかった時間
-    - rework_rate: 後退の頻度
-    - quality_scores: 成果物の品質
-
-  feedback:
-    - regular: 定期的なフィードバック収集
-    - actionable: 実行可能な改善提案
-    - tracked: 改善の効果測定
-```
+- 遷移時間の測定
+- 後退頻度の追跡
+- 成果物品質の評価
+- 定期的なフィードバック収集
 
 ## まとめ
 
