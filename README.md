@@ -47,23 +47,31 @@ cp agents/templates/design.md ~/.claude-code/agents/
 cp agents/templates/implementation.md ~/.claude-code/agents/
 ```
 
-### 2. 基本的な使い方
+### 2. プロジェクト文書ガイドラインの設定
+
+```bash
+# プロジェクトのdocsフォルダにガイドラインをコピー
+mkdir your-project/docs
+cp knowledge-guidelines/documentation-guidelines.md your-project/docs/
+```
+
+### 3. 基本的な使い方
 
 ```
-# プロジェクト開始時
-@management プロジェクトを開始したいです。タスク管理アプリを作りたいです。
+# プロジェクト開始時（ガイドライン参照込み）
+@management "docs/documentation-guidelines.mdを確認して、プロジェクトを開始してください。タスク管理アプリを作りたいです。"
 
 # 要件定義フェーズ
-@requirements ユーザー管理システムの要件を整理してください。
+@requirements "docs/documentation-guidelines.mdに従って、ユーザー管理システムの要件を整理してください。"
 
 # 設計フェーズ
-@design 要件に基づいてシステム設計を行ってください。
+@design "docs/documentation-guidelines.mdの品質基準に従って、システム設計を行ってください。"
 
 # 実装フェーズ
 @implementation ユーザー認証機能を実装してください。
 ```
 
-### 3. エージェントとの対話例
+### 4. エージェントとの対話例
 
 ```
 Human: @management ユーザー管理システムを作りたいです
@@ -94,8 +102,11 @@ mentor-driven-development/
 │ ├── requirements.md
 │ ├── design.md
 │ └── implementation.md
-└── workflows/ # ワークフロー定義
-└── phase-transition.md
+├── workflows/ # ワークフロー定義
+│ └── phase-transition.md
+└── knowledge-guidelines/ # プロジェクト文書作成ガイドライン
+    ├── README.md
+    └── documentation-guidelines.md
 
 ```
 
